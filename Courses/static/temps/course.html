@@ -1,0 +1,58 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>{{course.name}}</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+<body>
+    <h1>{{course.name}}</h1>
+    <h4>{% trans "Instructor : " %} {{course.instructor}}</h4>
+    <h4>{% trans "Total time : " %} {{ course.time }} {% trans " Hour"%}</h4>
+    <p class="tags"> 
+        <span class="h3" >{% trans "Tags" %}</span>
+        {% for tag in course.tags.all %} 
+        <span>{{tag}}</span> {%endfor%}
+    </p>
+    <h4>{% trans "Covered Skills" %} :</h4>
+        <ul>
+            {% for skill in course.skills_covered.all %}
+            <li>{{skill}}</li>
+            {% endfor %}
+        </ul>
+    <hr>
+    <p>
+        <h3>{% trans "About The Course" %} :</h3>
+        {{ course.intro_text }} <br>
+        <iframe width="560" height="315" src="{{course.intro_video}}" frameborder="1" allowfullscreen></iframe>
+    </p>
+    <hr>
+    <ul>
+    {% for unit in course.course_unit.all %}
+        <li>{{ unit.name }}
+            <ol>
+            {% for lesson in unit.unit_lesson.all %}
+            <li>{{lesson}}</li>
+            {%endfor%}
+        </ol>
+        </li>
+        {%endfor%}
+    </ul>
+
+
+    <hr>
+    <h4>{% trans "Student FeedBack" %}</h4>
+    <ul>
+        {% for feed in course.course_finish.all %}
+            <li>{{feed.rating}} - {{feed.date}} <br> {{feed.feedback}}</li>
+        {%endfor%}
+    </ul>
+    <p>
+        {% trans "Join"%} 
+        <script> document.write(({{course.course_finish.all.count }}+0) + ({{ course.course_study.all.count }}+0) );</script>
+        {% trans "Students Now"%} 
+    </p>
+</body>
+</html>

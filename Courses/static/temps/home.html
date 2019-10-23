@@ -1,0 +1,104 @@
+{% load i18n %}
+{% load static %}
+{% load my_tags %}
+<!DOCTYPE html>
+<html lang="{{ get_current_language }}">
+<head>
+
+    <meta charset='utf-8'>
+    <title>Learn IT | {% trans "Home" %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fontawesome.min.css' %}">
+    {% block style %}{% endblock style %}
+
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg fixed-top navbar-light bg-light">
+            <a class="navbar-brand" href="{% url "home" %}">
+                <img src="{% static 'img/logo.png' %}" width="115" height="40" class="d-inline-block align-top" alt="Learn IT">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse trans1" id="navbarNavDropdown">
+                <ul class="navbar-nav m-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'discover' %}">{% trans "Discover Courses" %}</a>
+                    </li>
+                    <li class="nav-item dropdown trans1">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {% trans "Categories" %} </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            {%getC as categories%}
+                            {%for c in categories %}
+                            <a class="dropdown-item" href="{% url 'category' c.slug %}">{{c.name}}</a>
+                            {%endfor%}
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            {% trans "My Courses" %}
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            {%for c in user.course_study.all %}
+                                <a class="dropdown-item" href="{% url 'course' c.course.slug %}">{{c.course.name}}</a>
+                            {%endfor%}
+                        </div>
+                    </li>
+                </ul>
+                <form class="form-inline" method="get" action="{% url 'search' %}">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Search" name="query">
+                    <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+                </form>
+            </div>
+        </nav>
+        <br><br>
+    </header>
+
+
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+    <footer class="footer bg-dark">
+        <div class="container row m-auto">
+            <div class="group col">
+                <h5 class="footer-title"> {% trans "Pages" %} </h5>
+                <br>
+                <li><a class="footer-a" href="{% url 'home' %}"> {% trans "Home" %} </a></li>
+                <li><a class="footer-a" href="{% url 'team' %}"> {% trans "Our Team" %} </a></li>
+                <li><a class="footer-a" href="{% url 'about' %}"> {% trans "About" %}</a></li>
+            </div>
+
+            <div class="group col">
+                <h5 class="footer-title"> {% trans "Our Newsteller" %} </h5>
+                <form class="form container m-20" method="get" action="{% url 'search' %}">
+                    <br>
+                    <li><input class="form-control mr-sm-2" type="search" placeholder="email" name="email"></li>
+                    <br>
+                    <li><button class="btn btn-outline-success" type="submit">Register</button></li>
+                </form>
+            </div>
+
+            <div class="group col">
+                <h5 class="footer-title"> {% trans "About US" %} </h5>
+                <br>
+                <p class="footer-describe"> This is place holder to describe the site, This is place holder to describe the site,
+                This is place holder to describe the site.
+                </p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    {% block js %}{% endblock %}
+</body>
+</html>

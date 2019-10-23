@@ -1,0 +1,400 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-04 23:25+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: Courses/settings.py:107
+msgid "English"
+msgstr "أنجليزى"
+
+#: Courses/settings.py:108
+msgid "Arabic"
+msgstr "عربى"
+
+#: static/temps/discover.html:7
+msgid "Discover Courses"
+msgstr "استكشاف الدورات"
+
+#: static/temps/home.html:8
+msgid "Test"
+msgstr "تجربة"
+
+#: static/temps/home.html:13
+msgid "Hello"
+msgstr "اهلا"
+
+#: website/admin.py:66
+msgid "Approve Course"
+msgstr "قبول الدورة"
+
+#: website/admin.py:72
+msgid "disabled staff"
+msgstr "حذف من الفريق"
+
+#: website/admin.py:160
+msgid "desactive staff"
+msgstr "حذف من الفريق"
+
+#: website/apps.py:7
+msgid "Website"
+msgstr "الموقع"
+
+#: website/models.py:14
+msgid "you can't create account if you are Younger than 7 Years "
+msgstr "لا يمكنك انشاء حساب اذا كنت اصغر من 7 سنوات"
+
+#: website/models.py:22
+msgid "Skill name"
+msgstr "اسم المهارة"
+
+#: website/models.py:28
+msgid "Skill"
+msgstr "المهارة"
+
+#: website/models.py:29
+msgid "Skills"
+msgstr "المهارات"
+
+#: website/models.py:36
+msgid "The User"
+msgstr "المستخدم"
+
+#: website/models.py:38 website/models.py:96 website/models.py:108
+#: website/models.py:202
+msgid "Description"
+msgstr "الوصف"
+
+#: website/models.py:40
+msgid "Phone"
+msgstr "الهاتف"
+
+#: website/models.py:41
+msgid "Gender"
+msgstr "النوع"
+
+#: website/models.py:42
+msgid "Male"
+msgstr "ذكر"
+
+#: website/models.py:43
+msgid "Female"
+msgstr "انثى"
+
+#: website/models.py:44
+msgid "Birth date"
+msgstr "تاريخ الميلاد"
+
+#: website/models.py:46
+msgid "Country"
+msgstr "الدولة"
+
+#: website/models.py:47
+msgid "City"
+msgstr "المدينة"
+
+#: website/models.py:48
+msgid "state"
+msgstr "المنطقة"
+
+#: website/models.py:50
+msgid "Saved courses"
+msgstr "الدورات المحفوظة"
+
+#: website/models.py:57
+msgid "Profile"
+msgstr "ملف المستخدم"
+
+#: website/models.py:58
+msgid "Profiles"
+msgstr "ملفات المستخدمين"
+
+#: website/models.py:68
+msgid "CAPITAL chars"
+msgstr "احرف كبيرة"
+
+#: website/models.py:69 website/models.py:76 website/models.py:154
+msgid "Language"
+msgstr "اللغة"
+
+#: website/models.py:77
+msgid "Languages"
+msgstr "لغات"
+
+#: website/models.py:81
+msgid "Level name"
+msgstr "اسم المستوى"
+
+#: website/models.py:82 website/models.py:89 website/models.py:157
+msgid "Level"
+msgstr "المستوى"
+
+#: website/models.py:90
+msgid "Levels"
+msgstr "المستويات"
+
+#: website/models.py:94
+msgid "Category name"
+msgstr "اسم القسم"
+
+#: website/models.py:95 website/models.py:120
+msgid "slug in url"
+msgstr "العنوان فى الرابط"
+
+#: website/models.py:102 website/models.py:124
+msgid "Category"
+msgstr "القسم"
+
+#: website/models.py:103
+msgid "Categories"
+msgstr "الاقسام"
+
+#: website/models.py:107
+msgid "Tag Name"
+msgstr "الوسم"
+
+#: website/models.py:114
+msgid "Tag"
+msgstr "وسم"
+
+#: website/models.py:115 website/models.py:126
+msgid "Tags"
+msgstr "اوسمة"
+
+#: website/models.py:121
+msgid "The Instructor"
+msgstr "المدرب"
+
+#: website/models.py:123
+msgid "The Name"
+msgstr "الاسم"
+
+#: website/models.py:127
+msgid "Full course time in Hours"
+msgstr "مجمل وقت الدورة بالساعات"
+
+#: website/models.py:128
+msgid "Publish Date"
+msgstr "تاريخ النشر"
+
+#: website/models.py:130
+msgid "Expiration Date"
+msgstr "تاريخ الانتهاء"
+
+#: website/models.py:132
+msgid "Attached Files in Zip and named as course title"
+msgstr "الملفات المرفقة بصيغة zip و نفس اسم الكورس"
+
+#: website/models.py:134
+msgid "Is Approved By Admin ?"
+msgstr "هل تم القبول من المسؤول ؟"
+
+#: website/models.py:140
+msgid "Skiils Covered in Course"
+msgstr "المهارات المكتسبة من الدورة"
+
+#: website/models.py:142
+msgid "Course Text introduction"
+msgstr "التعريف النصى بالدورة"
+
+#: website/models.py:143
+msgid "introduction video"
+msgstr "التعريف بالفيديو"
+
+#: website/models.py:144
+msgid "This should be embed YouTube"
+msgstr "من المفترض ان يكون رابط يوتيوب مضمن"
+
+#: website/models.py:145
+msgid "Before the course"
+msgstr "قبل الكورس"
+
+#: website/models.py:146
+msgid "What student should know about before enroll in course"
+msgstr "ماذا يجب ان يدري الطال قبل دخول الدورة"
+
+#: website/models.py:148
+msgid "After the course"
+msgstr "بعد الدورة"
+
+#: website/models.py:149
+msgid "What student can do after"
+msgstr "ماذا يستطيع الطالب فعله بعد الدورة"
+
+#: website/models.py:168
+msgid "Lesson count"
+msgstr "عدد الدروس"
+
+#: website/models.py:179 website/models.py:200 website/models.py:267
+#: website/models.py:280
+msgid "Course"
+msgstr "الدورة"
+
+#: website/models.py:180
+msgid "Courses"
+msgstr "الدورات"
+
+#: website/models.py:185 website/models.py:243
+msgid "Name"
+msgstr "الاسم"
+
+#: website/models.py:186
+msgid "Host Domain(Website Link)"
+msgstr "رابط المستضيف"
+
+#: website/models.py:187
+msgid "code before embeded link"
+msgstr "الكود قبل الرابط المضمن"
+
+#: website/models.py:188
+msgid "code after embeded link"
+msgstr "الكود بعد الرابط المضمن"
+
+#: website/models.py:194
+msgid "Host"
+msgstr "المستضيف"
+
+#: website/models.py:195
+msgid "Hosts"
+msgstr "المستضيفين"
+
+#: website/models.py:199
+msgid "The name"
+msgstr "الاسم"
+
+#: website/models.py:203
+msgid "Unit Arrange"
+msgstr "ترتيب الوحدة"
+
+#: website/models.py:204 website/models.py:251
+msgid "Arrange start at '1'"
+msgstr "الترتيب يبدأ من 1"
+
+#: website/models.py:207 website/models.py:219 website/models.py:252
+msgid "Unit"
+msgstr "الوحدة"
+
+#: website/models.py:208
+msgid "Units"
+msgstr "الوحدات"
+
+#: website/models.py:221
+msgid "Question"
+msgstr "السؤال"
+
+#: website/models.py:222
+msgid "style"
+msgstr "نمط السؤال"
+
+#: website/models.py:223
+msgid "Choose"
+msgstr "اختيار من متعدد"
+
+#: website/models.py:224
+msgid "Complete"
+msgstr "اكمل"
+
+#: website/models.py:225
+msgid "Check Done"
+msgstr "اكمال مهمة"
+
+#: website/models.py:226
+msgid "True answer"
+msgstr "الاجابة الصحيحة"
+
+#: website/models.py:227
+msgid "False 1"
+msgstr "الخطأ1"
+
+#: website/models.py:229
+msgid "False 2"
+msgstr "الخطأ2"
+
+#: website/models.py:231
+msgid "False 3"
+msgstr "الخطأ3"
+
+#: website/models.py:235
+msgid "Quiz"
+msgstr "السؤال"
+
+#: website/models.py:236
+msgid "Quizzes"
+msgstr "الاسئلة"
+
+#: website/models.py:244
+msgid "Lesson Text"
+msgstr "نص الدرس"
+
+#: website/models.py:245 website/models.py:247
+msgid "Video Link"
+msgstr "رابط الفيديو"
+
+#: website/models.py:248
+msgid "embeded video link"
+msgstr "رابط الفيديو المضمن"
+
+#: website/models.py:249
+msgid "Arrange in Unit"
+msgstr "الترتيب فى الوحدة"
+
+#: website/models.py:259
+msgid "Lesson"
+msgstr "الدرس"
+
+#: website/models.py:260
+msgid "Lessons"
+msgstr "الدروس"
+
+#: website/models.py:265 website/models.py:278
+msgid "User"
+msgstr "المستخدم"
+
+#: website/models.py:269
+msgid "Completed Lessons Videos"
+msgstr "الدؤوس المكتملة"
+
+#: website/models.py:273
+msgid "Enrollment"
+msgstr "الانضمام"
+
+#: website/models.py:274
+msgid "Enrollments"
+msgstr "الانضمامات"
+
+#: website/models.py:282
+msgid "Rating"
+msgstr "التقييم"
+
+#: website/models.py:285
+msgid "Course FeedBack"
+msgstr "وصف التقييم"
+
+#: website/models.py:286
+msgid "Date"
+msgstr "التاريخ"
+
+#: website/models.py:289 website/models.py:290
+msgid "Finished Enrolls"
+msgstr "تم الانتهاء"
+
+#~ msgid "attached files"
+#~ msgstr "ملفات مرفقة"
+
+#~ msgid "Video Host"
+#~ msgstr "رابط الفيديو"
