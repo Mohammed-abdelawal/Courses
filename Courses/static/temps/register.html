@@ -1,65 +1,40 @@
+{% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
-<!DOCTYPE html>
-<html dir="rtl">
-<head>
-
-    <meta charset='utf-8'>
-    <title>{% trans "Register" %}</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-
-</head>
-<body>
-
-  <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
-
-  <script src="{% static 'js/jquery.form.js' %}"></script>
-
-  <script src="{% static 'js/jquery.validate.min.js' %}"></script>
-<script>
-        $(document).ready(function(){
-            
-        $('#Register-forms').submit(function(f) {
-        
-        f.preventDefault(); // avoid to execute the actual submit of the form.
-        
-        var form = $(this);
-        var url = form.attr('action');
-        
-        $.ajax({
-               type: "POST",
-               url: url,
-               data: form.serialize(), // serializes the form's elements.
-               dataType : 'json',
-               success: function(data)
-               {
-                   if(data.code == 'invalid'){
-                       $('#errors').html(data.errors);
-                   }else{
-                    window.location.pathname = '{% url 'login' %}'
-                   }
-               } }); }); });
-        
-                
-        </script>
+{% block title%}{% trans "Register" %}{% endblock %}
+{% block content %}
     
                     <div style="margin-top: 90px; padding:10px;border: 1px #333 solid;border-radius: 5px; width:70%"  id="serviceform">
                         <form id="Register-forms" method="POST" action="{%url 'register'%}">
                             <h2 class="form-title" style="text-align: center">Register new user</h2>
                         <div id="errors">
-                            <ul class="errorlist"></ul>
-                            <br>
+                        <ul>
+                            {% for error in userForm.errors %}
+                            <li> {{error}} </li>
+                            {% endfor %}
+
+                            {% for error in profileForm.errors %}
+                            <li> {{error}} </li>
+                            {% endfor %}
+                            </ul>
+
                         </div>
                         {% csrf_token %}
         
         
                         {% for f in userForm %}
-                            {{f.label}} : {{f}}<br>
-                        {%endfor%}
-                        {{ profileForm}}
+                            
+        {{ f.errors }}
+        {{ f.label_tag }} {{ f }}
+                        {% endfor %}
+                        {% for f in profileForm %}
+                        {{ f.errors }}
+        {{ f.label_tag }} {{ f }}
+
+                        {% endfor %}
                         <br/>
                         <input class=" btn btn-info btn-form" width="130px" type="submit">
                     </form>
                 </div>
-</body>
-</html>
+
+{% endblock %}

@@ -12,7 +12,7 @@ from django.core.exceptions import ValidationError
 def birth_validator(birthdate):
     if int(birthdate.year) > (timezone.now().year - 7):
         raise ValidationError(_('you can\'t create account '
-                              'if you are Younger than 7 Years '))
+                                'if you are Younger than 7 Years '))
 
 
 # --------- Models ---------
@@ -34,13 +34,14 @@ class Profile(models.Model):
         - it connect with django user model with (user) field
     '''
     user = models.OneToOneField(verbose_name=_('The User'), to=User,
-                                on_delete=models.CASCADE)
+                                on_delete=models.CASCADE,
+                                related_name='profile')
     about = models.TextField(verbose_name=_('Description'), null=True,
-                             max_length=2000, blank=True)
+                             max_length=1000, blank=True)
     phone = models.CharField(verbose_name=_('Phone'), max_length=20)
     is_male = models.BooleanField(verbose_name=_('Gender'), choices=(
-        (False, _('Male')),
-        (True, _('Female'))))
+        (True, _('Male')),
+        (False, _('Female'))))
     birthdate = models.DateField(verbose_name=_('Birth date'), null=True,
                                  blank=True, validators=[birth_validator])
     country = models.CharField(verbose_name=_('Country'), max_length=30)
@@ -53,7 +54,7 @@ class Profile(models.Model):
                             null=True, blank=True)
 
     def __str__(self):
-        return self.user.__str__()
+        return self.user.username
 
     class Meta:
         verbose_name = _('Profile')
@@ -64,6 +65,20 @@ class Profile(models.Model):
 class Instructor(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE)
 '''
+
+
+class Host(models.Model):
+    name = models.CharField(_('Name'), max_length=50)
+    website = models.URLField(_('Website'), max_length=200)
+    after = models.TextField(_('After Link'))
+    before = models.TextField(_('Before Link'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('Host')
+        verbose_name_plural = _('Hosts')
 
 
 class Language(models.Model):
@@ -133,8 +148,8 @@ class Course(models.Model):
     expiration_date = models.DateField(verbose_name=_('Expiration Date'),
                                        null=True, blank=True)
     files = models.FileField(verbose_name=_('Attached Files in Zip and named '
-                             'as course title'), null=True, blank=True,
-                             upload_to='CF')
+                                            'as course title'), null=True,
+                             blank=True, upload_to='CF')
     is_approved = models.BooleanField(verbose_name=_('Is Approved By Admin ?'),
                                       default=False)
 
@@ -147,8 +162,8 @@ class Course(models.Model):
     intro_video = models.URLField(verbose_name=_('introduction video'),
                                   help_text=_('This should be embed YouTube'))
     before = models.TextField(verbose_name=_('Before the course'),
-                              help_text=_('What student should '
-                              'know about before enroll in course'))
+                              help_text=_('What student should know '
+                                          'about before enroll in course'))
     after = models.TextField(verbose_name=_('After the course'),
                              help_text=_('What student can do after'))
 
@@ -238,13 +253,15 @@ class Lesson(models.Model):
                             help_text=_('embeded video link'))
     arrange = models.IntegerField(verbose_name=_('Arrange in Unit'),
                                   validators=[
-                            MinValueValidator(1, _('Arrange start at \'1\''))])
+        MinValueValidator(1, _('Arrange start at \'1\''))])
     unit = models.ForeignKey(verbose_name=_('Unit'), to=Unit,
                              on_delete=models.CASCADE,
                              related_name='unit_lesson')
+    host = models.ForeignKey(Host, verbose_name=_('Host'),
+                             on_delete=models.PROTECT)
 
     def __str__(self):
-        return self.name
+        return self.name + ' unit : ' + self.unit.name
 
     class Meta:
         verbose_name = _('Lesson')
@@ -308,11 +325,13 @@ class Student_Study_Course(models.Model):
                              related_name='course_study')
     course = models.ForeignKey(verbose_name=_('Course'), to=Course,
                                on_delete=models.CASCADE)
+    date = models.DateField(_('Date'), auto_now_add=True)
 
     class Meta:
         verbose_name = _('Enrollment')
         verbose_name_plural = _('Enrollments')
         unique_together = [['user', 'course']]
+        ordering = ['date']
 
     def __str__(self):
         return str(self.pk) + '-' + str(self.user)+' - '+str(self.course)
@@ -334,3 +353,22 @@ class Student_Finish_Course(models.Model):
         verbose_name = _('Finished Enrolls')
         verbose_name_plural = _('Finished Enrolls')
         unique_together = [['user', 'course']]
+
+
+class NewsTeller(models.Model):
+    email = models.EmailField(verbose_name=_('Email'), unique=True)
+    is_subscribe = models.BooleanField(verbose_name=_('is Subscribe'),
+                                       default=True)
+
+    class Meta:
+        verbose_name = _('News Teller Subscriber')
+        verbose_name_plural = _('NewsTeller Subscriber')
+
+
+class NewsTeller_Emails(models.Model):
+    msg = models.TextField(verbose_name=_('MSG'))
+    subject = models.CharField(verbose_name=_('Subject'), max_length=100)
+
+    class Meta:
+        verbose_name = _('NewsTeller Email')
+        verbose_name_plural = _('NewsTeller Emails')

@@ -2,12 +2,13 @@
 {% load static %}
 {% load my_tags %}
 <!DOCTYPE html>
-<html lang="{{ get_current_language }}">
+<html lang="{{ get_current_language }}" dir="auto">
 <head>
 
     <meta charset='utf-8'>
-    <title>Learn IT | {% trans "Home" %}</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <title>{% block title %}- {% endblock %} | Learn IT</title>
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"> -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
     <link rel="stylesheet" href="{% static 'css/fontawesome.min.css' %}">
     {% block style %}{% endblock style %}
@@ -42,30 +43,30 @@
                             {% trans "My Courses" %}
                         </a>
                         <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                            {% if user.course_study.all.0 %}
                             {%for c in user.course_study.all %}
                                 <a class="dropdown-item" href="{% url 'course' c.course.slug %}">{{c.course.name}}</a>
                             {%endfor%}
+                            {% else %}
+                            <a class="dropdown-item btn " href="{% url 'discover' %}">{% trans "Discover New Courses &rarrhk;" %}</a>
+                            {% endif %}
                         </div>
                     </li>
                 </ul>
                 <form class="form-inline" method="get" action="{% url 'search' %}">
-                    <input class="form-control mr-sm-2" type="search" placeholder="Search" name="query">
+                    <input class="form-control mr-sm-2" type="search" placeholder="Search" name="name">
                     <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
                 </form>
             </div>
         </nav>
-        <br><br>
+        <br><br><br><br>
+        {%if user.is_authenticated %}
+            {{user.username}}
+        {%endif%}
     </header>
 
-
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-<br>
-
+    {% block content %}
+    {% endblock %}
 
     <footer class="footer bg-dark">
         <div class="container row m-auto">
@@ -86,7 +87,6 @@
                     <li><button class="btn btn-outline-success" type="submit">Register</button></li>
                 </form>
             </div>
-    <br>
             <div class="group col">
                 <h5 class="footer-title"> {% trans "About US" %} </h5>
                 <br>
@@ -96,9 +96,14 @@
             </div>
         </div>
     </footer>
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/popper.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <!--
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
-    {% block js %}{% endblock %}
+    -->
+    {% block script %}{% endblock %}
 </body>
 </html>

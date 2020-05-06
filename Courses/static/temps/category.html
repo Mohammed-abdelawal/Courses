@@ -1,13 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>{{queryset.0.category}}</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-</head>
-<body>
-    <h1>{{queryset.0.category}}</h1>
+{% extends 'base.html' %}
+{% load static %}
+{% block title%} HAHA {% endblock %}
+
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/category.css' %}">
+{% endblock %}
+
+
+{% block content %}
+
+    <h1 class="category-head h1 ">{{queryset.0.category}}</h1>
     
     <p>{{queryset.0.category.desc}}</p>
     
@@ -15,5 +18,4 @@
             {{c.name}}<br>
         {% endfor %}
 
-</body>
-</html>
+{% endblock %}

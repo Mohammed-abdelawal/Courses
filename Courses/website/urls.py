@@ -9,19 +9,19 @@ urlpatterns = [
 
     # Auth Links ::
 
-    path('register', views.RegisterView.as_view(), name='register'),
+    path('register/', views.RegisterView.as_view(), name='register'),
     path('accounts/', include('django.contrib.auth.urls')),
 
     # Static content pages ::
     path('admin/', admin.site.urls),
-    path('', views.Home.as_view(), name='home'),
+    path('', views.Home, name='home'),
     path('about', views.about, name='about'),
     path('team', views.team, name='team'),
 
     # Navigate Courses pages ::
 
     path('discover/', views.discover, name='discover'),
-    path('search/', views.CoursesSearchListView.as_view(), name='search'),
+    path('search/', views.CoursesSearchView.as_view(), name='search'),
     path('category/<slug:category>', views.categoryCourses, name='category'),
     path('mycourses/', views.categoryCourses, name='myCourses'),
 

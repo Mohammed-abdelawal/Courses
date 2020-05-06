@@ -1,19 +1,25 @@
+{% extends 'base.html' %}
 {% load i18n %}
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
-    <title>{% trans "Discover Courses" %}</title>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-</head>
-<body>
+{% block title%}{% trans "Search Courses" %}{% endblock %}
+{% block content %}    
 
-    {% for Category in quesyset %}
-        <h1>{{Category.0.category.name}}</h1><hr>
-        {% for course in Category %}
-        <p>{{ course.name }}</p>
-        {% endfor %}
+<form method="GET">
+{{SearchForm.as_p}}
+{% csrf_token %}
+<input type="submit" value="submit" >
+</form>
+<br><br>
+
+
+    {% for course in queryset %}
+        {{ course.name }}<br>
+        {{course.pub_date}}<br>
+        {% for t in course.tags.all %}
+            {{t.name}}
+        {%endfor%}
+        <br>
+        <hr>
     {% endfor %}
-</body>
-</html>
+
+
+{% endblock %}

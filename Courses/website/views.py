@@ -3,16 +3,18 @@ from django.views.generic import DetailView, ListView
 from . import models
 from django.views.generic.base import View, TemplateView
 from . import forms
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login  # , logout, authenticate
 from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.urls import reverse
 from django.http import JsonResponse
 
+
 # Create your views here.
 
 
-class Home(TemplateView):
-    template_name = 'home.html'
+def Home(request):
+    print(request.user)
+    return render(request, 'home.html')
 
 
 def about(request):
@@ -28,19 +30,31 @@ class RegisterView(View):
         userForm = forms.UserForm(request.POST)
         profileForm = forms.ProfileForm(request.POST, request.FILES)
         if userForm.is_valid() and profileForm.is_valid():
-            user = userForm.save()
+            # hashed_password = make_password(
+            #                  password=userForm.cleaned_data['password'])
+
+            user = models.User.objects.create(
+                               username=userForm.cleaned_data['username'],
+                               first_name=userForm.cleaned_data['first_name'],
+                               last_name=userForm.cleaned_data['last_name'],
+                               email=userForm.cleaned_data['email'])
+
+            user.set_password(userForm.cleaned_data['password'])
+            # user.set_password(validated_data['password'])
+            user.save()
+            # user.set_password(hashed_password)
             profile = profileForm.save(False)
             profile.user = user
             if 'pic' in request.FILES:
                 profile.pic = request.FILES['pic']
             profile.save()
+            login(request, user)
             userForm.clean()
             profileForm.clean()
-            return JsonResponse({'code': 'valid'})
+            return redirect('home')
         else:
-            errors = userForm.errors.as_ul() + profileForm.errors.as_ul()
-            print(errors)
-        return JsonResponse({'code': 'invalid', 'errors': errors})
+            return render(request, 'register.html',
+                          {'userForm': userForm, 'profileForm': profileForm})
 
     def get(self, request, *args, **kwargs):
         userForm = forms.UserForm()
@@ -51,6 +65,12 @@ class RegisterView(View):
 
 
 def discover(request):
+    """
+        This view return list that's contain small lists inside it
+        - every small list have first 5 courses or less from one category
+        - access Category object in DTL with get category var in every
+          first element in small list
+     """
     categorys = models.Category.objects.only('pk')
     c_courses = []
     for cat in categorys:
@@ -62,12 +82,30 @@ def discover(request):
     return render(request, 'discover.html', {'quesyset': c_courses})
 
 
-class CoursesSearchListView(ListView):
-    model = models.Course
-    template_name = "search.html"
+class CoursesSearchView(View):
 
-    def get_queryset(self):
-        pass
+    def post(self, request, *args, **kwargs):
+        return render(request, 'search.html',
+                      {'SearchForm': forms.SearchForm()})
+
+    def get(self, request, *args, **kwargs):
+        form = forms.SearchForm(request.GET)
+
+        if form.is_valid():
+
+            if form.cleaned_data['pub_date']:
+                search_c = models.Course.objects.filter(
+                        name__contains=form.cleaned_data['name']).filter(
+                            pub_date__gte=form.cleaned_data['pub_date'])
+
+            else:
+                search_c = models.Course.objects.filter(
+                        name__contains=form.cleaned_data['name'])
+
+            return render(request, 'search.html', {'SearchForm': form,
+                                                   'queryset': search_c})
+        else:
+            return render(request, 'search.html', {'SearchForm': form})
 
 
 def categoryCourses(request, category):
@@ -107,11 +145,10 @@ class LessonView(View):
             return redirect('course', course=kwargs['course'])
 
     def post(self, request, *args, **kwargs):
-
         c = models.Course.objects.get(slug=kwargs['course']).pk
         ssc = models.Student_Study_Course.objects.filter(user=request.user,
                                                          course=c)
         person, created = models.Lesson_Attend.objects.get_or_create(
-            lesson=kwargs['lesson'],
+            lesson=models.Lesson.objects.get(id=kwargs['lesson']),
             enrollment=ssc[0])
-        return HttpResponse({})
+        return HttpResponse(status=200)
