@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
 from django.utils.html import format_html
+from ckeditor_uploader.fields import RichTextUploadingField
+
 # --- HELPER FUNCTIONS ---
 
 
@@ -59,7 +61,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_('Is Active ?'), default=True)
     is_staff = models.BooleanField(_('Is Staff ?'), default=False)
     is_instructor = models.BooleanField(_('Is Instructor ?'), default=False)
-    about = models.TextField(_('Description'), null=True, blank=True)
+    about = RichTextUploadingField(_('Description'), null=True, blank=True)
     phone = models.CharField(_('Phone'), max_length=20, blank=True, null=True)
     is_male = models.BooleanField(_('Gender'), default=True,
                                   choices=((True, _('Male')), (False, _('Female'))))
@@ -138,7 +140,7 @@ class Level(models.Model):
 class Category(models.Model):
     name = models.CharField(_('Category name'), max_length=100, unique=True)
     slug = models.SlugField(_('slug in url'), unique=True)
-    desc = models.TextField(_('Description'))
+    desc = RichTextUploadingField(_('Description'))
     
     def get_5_courses(self):
         return self.courses.filter(is_approved=True)[:5]
@@ -193,7 +195,7 @@ class Course(models.Model):
 
     skills_covered = models.ManyToManyField(to=Skill, related_name='courses',
                                             verbose_name=_('Skiils Covered in Course'))
-    intro_text = models.TextField(_('Course Text introduction'))
+    intro_text = RichTextUploadingField(_('Course Text introduction'))
     intro_video = models.URLField(_('introduction video'),
                                   help_text=_('This should be embed YouTube link'))
     before = models.TextField(_('Before the course'),
@@ -240,7 +242,7 @@ class Unit(models.Model):
     course = models.ForeignKey(verbose_name=_('Course'), to=Course,
                                on_delete=models.CASCADE,
                                related_name='units')
-    desc = models.TextField(verbose_name=_('Description'))
+    desc = RichTextUploadingField(verbose_name=_('Description'))
     arrange = models.IntegerField(verbose_name=_('Unit Arrange'), validators=[
         MinValueValidator(1, _('Arrange start at \'1\''))], default=1)
 

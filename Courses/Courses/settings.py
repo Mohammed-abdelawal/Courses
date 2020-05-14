@@ -6,12 +6,12 @@ from django.utils.translation import ugettext_lazy as _
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'temps/')
-
+"""
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
     '/var/www/static/',
 ]
-
+"""
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -23,6 +23,26 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# CKEDITOR
+
+CKEDITOR_UPLOAD_PATH = "uploads/"
+
+CKEDITOR_FILENAME_GENERATOR = 'help.get_filename'
+
+CKEDITOR_CONFIGS = {
+    'default':{
+        'toolbar':'Custom',
+        'height':600,
+        'toolbar_Custom': [
+            ['Styles',"Format", "Bold", "Italic", "Underline", "Strike", "SpellChecker",'HorizontalRule'],
+            ['NumberedList', 'BulletedList', "Indent", "Outdent", 'JustifyLeft', 'JustifyCenter',
+            'JustifyRight', 'JustifyBlock'],
+            ["Image", "Table", "Link", "Unlink", "Anchor", "SectionLink", "Subscript", "Superscript"],
+            ['Undo', 'Redo'],
+            ["Maximize",'Preview','PasteFromWord']
+            ]
+    }
+}
 
 # Application definition
 
@@ -34,6 +54,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'website',
+    'ckeditor',
 ]
 
 MIDDLEWARE = [
@@ -129,7 +150,7 @@ LOCALE_PATHS = [
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 

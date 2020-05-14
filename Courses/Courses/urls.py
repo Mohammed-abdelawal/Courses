@@ -8,7 +8,10 @@ from website.views import attend
 # -----------Translation With i18n and ajax---------------
 
 
-urlpatterns = [path('attend/', attend, name='attend_url')]
+urlpatterns = [
+    path('attend/', attend, name='attend_url'),
+    path(r'ckeditor/', include('ckeditor_uploader.urls')),
+    ]
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += i18n_patterns(path('', include('website.urls')))
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
