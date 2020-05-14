@@ -3,6 +3,7 @@ from . import models
 from django.contrib.auth.admin import UserAdmin
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
+from django.contrib.auth.admin import UserAdmin
 
 
 # Inline Admin Classes
@@ -17,44 +18,11 @@ class UnitInline(admin.TabularInline):
         return False
 
 
-class FinishCourse(admin.TabularInline):
-    model = models.Student_Finish_Course
+class RelCourse(admin.TabularInline):
+    model = models.Rel
     show_change_link = True
-    readonly_fields = ['user', 'course', 'rating', 'feedback', 'date']
-    ordering = ['date']
-    can_delete = False
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class StudyCourse(admin.TabularInline):
-    model = models.Student_Study_Course
-    show_change_link = True
-    readonly_fields = ['user', 'course', 'date']
-    ordering = ['date']
-    can_delete = False
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class Lesson_AttendInline(admin.TabularInline):
-    model = models.Lesson_Attend
-    show_change_link = True
-    readonly_fields = ['lesson', 'enrollment']
-    ordering = ['lesson__arrange']
-    can_delete = False
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-
-class Quiz_SolveInline(admin.TabularInline):
-    model = models.Quiz_Solve
-    show_change_link = True
-    readonly_fields = ['quiz', 'enrollment', 'is_True']
-    ordering = ['enrollment']
+    readonly_fields = ['student', 'course', 'rel_type', 'join_date']
+    ordering = ['join_date']
     can_delete = False
 
     def has_add_permission(self, request, obj=None):
@@ -71,8 +39,8 @@ class LessonInline(admin.TabularInline):
             ),
         }),
     )
-    
-    readonly_fields = ['name','video','unit','host']
+
+    readonly_fields = ['name', 'video', 'unit', 'host']
     ordering = ['arrange']
     can_delete = False
 
@@ -85,15 +53,16 @@ class QuizInline(admin.TabularInline):
     fieldsets = (
         (None, {
             "fields": (
-                ('question', 'style', 'answer')
+                ('question', 'answer')
             ),
         }),
     )
     show_change_link = True
-    readonly_fields = ['question', 'style', 'answer']
-    can_delete = False
+    can_delete = True
+    extra = 0
+
     def has_add_permission(self, request, obj=None):
-        return False
+        return True
 
 
 # ---------- end Inline classes
@@ -101,18 +70,16 @@ class QuizInline(admin.TabularInline):
 
 # Start Main MOdels Admin
 
-
-@admin.register(models.Student_Study_Course)
-class StudyCourseAdmin(admin.ModelAdmin):
-    inlines = [Quiz_SolveInline, Lesson_AttendInline]
-    list_display = ['id', 'user', 'course', 'date']
-    list_filter = ['date', 'course']
+@admin.register(models.Rel)
+class RELAdmin(admin.ModelAdmin):
+    list_display = ['id', 'student', 'course', 'join_date', 'rel_type']
+    list_filter = ['rel_type', 'course']
 
     def get_readonly_fields(self, request, obj=None):
-        if request.user.is_superuser or (obj is None ) or (request.user is obj.course.instructor):
-            return []
+        if request.user.is_superuser or (obj is None) or (request.user is obj.course.instructor):
+            return ['student', 'course']
         else:
-            return ['user', 'course']
+            return ['student', 'course', 'rel_type', 'lessons_attended', 'quizzes_solved', 'rating', 'feedback', 'join_date']
 
 
 @admin.register(models.Unit)
@@ -136,44 +103,50 @@ class UnitAdmin(admin.ModelAdmin):
 
 def approve(modeladmin, request, queryset):
     queryset.update(is_approved=True)
+
+
 approve.short_description = _('Approve Course')
 
 
 def not_staff(modeladmin, request, queryset):
     if request.user.is_superuser:
         queryset.update(is_staff=False)
-not_staff.short_description = _('disabled staff')
+
+
+not_staff.short_description = _('disable staff')
 
 
 @admin.register(models.Course)
 class CourseAdmin(admin.ModelAdmin):
     actions = [approve]
     date_hierarchy = 'pub_date'
-    inlines = [UnitInline, StudyCourse, FinishCourse]
-    list_display = ['name', 'instructor', 'get_lessons_num', 'is_approved']
+    inlines = [UnitInline,]
+    list_display = ['title', 'instructor', 'get_lessons_num', 'is_approved']
     ordering = ['pub_date']
-    list_filter = ['instructor', 'category', 'skills_covered', 'is_approved', 'level']
-    search_fields = ['name', 'skills_covered']
+    list_filter = ['instructor', 'category',
+                   'skills_covered', 'is_approved', 'level']
+    search_fields = ['title', 'skills_covered']
     filter_horizontal = ['tags', 'skills_covered']
-    prepopulated_fields = {'slug': ('name',)}
+    prepopulated_fields = {'slug': ('title',)}
     fieldsets = ((None,
-                 {
-                   'classes': ('extrapretty',),
-                   'fields': (
-                             ('instructor', 'pub_date', 'is_approved'),
-                             ('name', 'slug'),
-                             'time', 'files', (),
-                             ('language', 'level', 'category'),
-                             ('tags', 'skills_covered'),
-                             'intro_text', 'intro_video',
-                             'after', 'before', ()
-                             )
-                 },),)
+                  {
+                      'classes': ('extrapretty',),
+                      'fields': (
+                          ('instructor', 'pub_date', 'is_approved'),
+                          ('title', 'slug'),
+                          'time', 'files', (),
+                          ('language', 'level', 'category'),
+                          ('tags', 'skills_covered'),
+                          'intro_text', 'intro_video',
+                          'after', 'before', ()
+                      )
+                  },),)
 
     def get_readonly_fields(self, request, obj=None):
         list_ro = ['pub_date']
         if obj:
-            list_ro += ['instructor', 'is_approved'] if obj.is_approved else ['instructor']
+            list_ro += ['instructor',
+                        'is_approved'] if obj.is_approved else ['instructor']
         else:
             list_ro += ['is_approved']
 
@@ -278,29 +251,63 @@ class LessonAdmin(admin.ModelAdmin):
 def NOT_STAFF(modeladmin, request, queryset):
     if request.user.is_superuser:
         queryset.update(is_staff=False)
+
+
 not_staff.short_description = _('desactive staff')
 
 
 def SEND_EMAIL(modeladmin, request, queryset):
     print('Send Email')
+
+
 SEND_EMAIL.short_description = _('Send Email')
 
 
-class ProfileInline(admin.StackedInline):
-    model = models.Profile
-    can_delete = False
-    verbose_name = 'Profile'
-    fk_name = 'user'
-    radio_fields = {'is_male': admin.HORIZONTAL}
-
-
 class CustomUserAdmin(UserAdmin):
-    UserAdmin.list_display += ('is_active',)
-    inlines = [ProfileInline, FinishCourse, StudyCourse]
-    UserAdmin.actions += [not_staff]
-    UserAdmin.list_filter += ('profile__is_male',)
+    ordering = ('id',)
+    list_display = ('email', 'is_active', 'is_staff', 'is_male')
+    actions = [not_staff]
+    list_filter = ('is_male', 'is_instructor')
 
-    # UserAdmin.list_display += ('username',)
+    readonly_fields = ['pic_tag']
 
-admin.site.unregister(models.User)
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        (_('Personal Info'), {'fields': ('first_name','last_name')}),
+        (_('Permissions'),
+            {
+                'fields': (
+                    'is_active',
+                    'is_staff',
+                    'is_superuser',
+                    'is_instructor',
+                )
+            }
+        ),
+        (_('Additional Info'),
+            {
+                'fields': (
+                    'about',
+                    'phone',
+                    'is_male',
+                    'birthdate',
+                    'country',
+                    'city',
+                    'pic',
+                    'pic_tag',
+                )
+            }
+        ),
+        (_('Important dates'), {'fields': ('last_login',)}),
+    
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2')
+        }),
+    )
+
+
 admin.site.register(models.User, CustomUserAdmin)

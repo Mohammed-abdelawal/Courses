@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-TEMPLATE_DIR = os.path.join(BASE_DIR, 'static/temps/')
+TEMPLATE_DIR = os.path.join(BASE_DIR, 'temps/')
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
@@ -101,6 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = 'website.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/

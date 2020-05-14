@@ -1,19 +1,18 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic import DetailView, ListView
-from . import models
-from django.views.generic.base import View, TemplateView
-from . import forms
 from django.contrib.auth import login  # , logout, authenticate
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.contrib.auth.decorators import login_required
+from django.http import (Http404, HttpResponse, HttpResponseRedirect,
+                         JsonResponse)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.http import JsonResponse
+from django.views.generic import DetailView, ListView
+from django.views.generic.base import TemplateView, View
 
+from . import forms, models
 
 # Create your views here.
 
 
 def Home(request):
-    print(request.user)
     return render(request, 'home.html')
 
 
@@ -27,41 +26,31 @@ def team(request):
 
 class RegisterView(View):
     def post(self, request, *args, **kwargs):
-        userForm = forms.UserForm(request.POST)
-        profileForm = forms.ProfileForm(request.POST, request.FILES)
-        if userForm.is_valid() and profileForm.is_valid():
-            # hashed_password = make_password(
-            #                  password=userForm.cleaned_data['password'])
+        if request.user.email:
+            return redirect(reverse('home'))
 
-            user = models.User.objects.create(
-                               username=userForm.cleaned_data['username'],
-                               first_name=userForm.cleaned_data['first_name'],
-                               last_name=userForm.cleaned_data['last_name'],
-                               email=userForm.cleaned_data['email'])
-
+        userForm = forms.UserForm(request.POST, request.FILES)
+        if userForm.is_valid():
+            user = userForm.save()
             user.set_password(userForm.cleaned_data['password'])
-            # user.set_password(validated_data['password'])
-            user.save()
-            # user.set_password(hashed_password)
-            profile = profileForm.save(False)
-            profile.user = user
             if 'pic' in request.FILES:
-                profile.pic = request.FILES['pic']
-            profile.save()
+                user.pic = request.FILES['pic']
+            user.save()
             login(request, user)
-            userForm.clean()
-            profileForm.clean()
+            # userForm.clean()
+            # profileForm.clean()
             return redirect('home')
         else:
             return render(request, 'register.html',
-                          {'userForm': userForm, 'profileForm': profileForm})
+                          {'userForm': userForm})
 
     def get(self, request, *args, **kwargs):
-        userForm = forms.UserForm()
-        profileForm = forms.ProfileForm()
+        if request.user.email:
+            return redirect(reverse('home'))
 
-        return render(request, 'register.html', {'userForm': userForm,
-                                                 'profileForm': profileForm})
+        else:
+            userForm = forms.UserForm()
+            return render(request, 'register.html', {'userForm': userForm})
 
 
 def discover(request):
@@ -76,41 +65,31 @@ def discover(request):
     for cat in categorys:
         course = models.Course.objects.filter(category=cat,
                                               is_approved=True)[:5]
-        if course:
+        if len(course) > 2:
             c_courses.append(course)
-
     return render(request, 'discover.html', {'quesyset': c_courses})
 
 
 class CoursesSearchView(View):
 
-    def post(self, request, *args, **kwargs):
-        return render(request, 'search.html',
-                      {'SearchForm': forms.SearchForm()})
-
     def get(self, request, *args, **kwargs):
         form = forms.SearchForm(request.GET)
 
         if form.is_valid():
-
-            if form.cleaned_data['pub_date']:
-                search_c = models.Course.objects.filter(
-                        name__contains=form.cleaned_data['name']).filter(
-                            pub_date__gte=form.cleaned_data['pub_date'])
-
-            else:
-                search_c = models.Course.objects.filter(
-                        name__contains=form.cleaned_data['name'])
+            qs = models.Course.objects.all()
 
             return render(request, 'search.html', {'SearchForm': form,
-                                                   'queryset': search_c})
+                                                   'queryset': qs})
         else:
+            print('++++++++++why not shit ?++++++++++++++')
+            print(form.errors)
             return render(request, 'search.html', {'SearchForm': form})
 
 
 def categoryCourses(request, category):
-    queryset = models.Course.objects.filter(category__slug=category,
-                                            is_approved=True)
+
+    queryset = get_object_or_404(models.Category, slug=category)
+
     return render(request, 'category.html', {'queryset': queryset})
 
 
@@ -119,36 +98,42 @@ def courseView(request, course):
     return render(request, 'course.html', {'course': course})
 
 
+@login_required
 def unitView(request, course, unit):
-    unit = get_object_or_404(models.Unit, pk=unit, course__is_approved=True)
+    unit = get_object_or_404(models.Unit, pk=unit,
+                             course__is_approved=True, course__slug=course)
     return render(request, 'unit.html', {'unit': unit})
 
 
 class LessonView(View):
     def get(self, request, *args, **kwargs):
-        c = models.Course.objects.get(slug=kwargs['course']).pk
-        sfc = models.Student_Finish_Course.objects.filter(user=request.user,
-                                                          course=c)
-        ssc = models.Student_Study_Course.objects.filter(user=request.user,
-                                                         course=c)
-        if sfc or ssc:
-            l = get_object_or_404(models.Lesson, unit=kwargs['unit'],
-                                  unit__course=c,
-                                  pk=kwargs['lesson'])
-            is_attend = models.Lesson_Attend.objects.filter(lesson=l,
-                                                            enrollment=ssc[0])
 
-            return render(request, 'lesson.html', {'lesson': l,
-                          'is_attend': is_attend})
+        lesson = get_object_or_404(models.Lesson,
+                                   pk=kwargs['course'],
+                                   unit__pk=kwargs['course'],
+                                   unit__course__slug=kwargs['course'])
+
+        rel = models.Rel.objects.get(student=self.request.user,
+                                     course=lesson.unit.course)
+        if lesson and rel:
+
+            is_attend = rel.is_attended(l.id)
+
+            return render(request, 'lesson.html',
+                          {'lesson': l, 'is_attend': is_attend})
 
         else:
             return redirect('course', course=kwargs['course'])
 
-    def post(self, request, *args, **kwargs):
-        c = models.Course.objects.get(slug=kwargs['course']).pk
-        ssc = models.Student_Study_Course.objects.filter(user=request.user,
-                                                         course=c)
-        person, created = models.Lesson_Attend.objects.get_or_create(
-            lesson=models.Lesson.objects.get(id=kwargs['lesson']),
-            enrollment=ssc[0])
-        return HttpResponse(status=200)
+
+@login_required
+def attend(request, lesson_id):
+    lesson = models.Lesson.get(id=lesson_id)
+    course = lesson.unit.course
+
+    rel = get_object_or_404(models.Rel,
+                            student=request.user,
+                            course=course)
+    rel.lessons_attended.add(lesson)
+
+    return HttpResponse({'status': 202})

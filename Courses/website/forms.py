@@ -2,34 +2,22 @@ from django import forms
 from . import models
 from django.utils.translation import ugettext_lazy as _
 from datetime import datetime, date
+from django.contrib.auth import get_user_model
 
-y = datetime.now().year
 
-
-# Forms
+def get_year():
+    return datetime.now().year
 
 
 class UserForm(forms.ModelForm):
 
     class Meta:
-        model = models.User
-        fields = ('first_name', 'last_name', 'username', 'email', 'password')
-
-
-class ProfileForm(forms.ModelForm):
-
-    class Meta:
-        model = models.Profile
-        fields = ('about', 'phone', 'is_male', 'birthdate', 'country', 'city',
-                  'state')
+        model = get_user_model()
+        fields = ('email', 'first_name', 'last_name', 'is_instructor',
+                  'phone', 'is_male', 'birthdate', 'country', 'pic')
         widgets = {'birthdate': forms.SelectDateWidget(
-                                      years=[i for i in range(2000, y-7)])}
+            years=[i for i in range(1990, get_year()-6)])}
 
 
 class SearchForm(forms.Form):
-
-    name = forms.CharField(max_length=120, label=_('Name'), required=False)
-    pub_date = forms.DateField(required=False, label=_('Pub Date'),
-                               widget=forms.SelectDateWidget(
-                                      years=[i for i in range(2000, y+1)]),
-                               initial=date(2015, 1, 1))
+    name = forms.CharField(max_length=255, label=_('Name'))

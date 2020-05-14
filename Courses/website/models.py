@@ -1,25 +1,91 @@
-from django.db import models
-from django.contrib.auth.models import User
-from django.utils import timezone
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.utils.translation import ugettext_lazy as _
+import os
+import uuid
+
+from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
+                                        PermissionsMixin)
 from django.core.exceptions import ValidationError
-
-
-# Validators
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
+from django.utils.html import format_html
+# --- HELPER FUNCTIONS ---
 
 
 def birth_validator(birthdate):
     if int(birthdate.year) > (timezone.now().year - 7):
-        raise ValidationError(_('you can\'t create account '
-                                'if you are Younger than 7 Years '))
+        raise ValidationError(_("""you can\'t create account 
+                                if you are Younger than 7 Years """))
 
 
-# --------- Models ---------
+def uuid_path(instance, file_name):
+    """Generate file name with uuid"""
+    ext = file_name.split('.')[-1]
+    file_name = f'{uuid.uuid4()}.{ext}'
+    return os.path.join('pp', file_name)
+
+# --- User Model ---
+
+
+class UserManager(BaseUserManager):
+
+    def create_user(self, email, password=None, **extra_fields):
+        """Creates and saves a new User"""
+        if not email:
+            raise ValueError(_('User should have E-mail address'))
+        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+
+        return user
+
+    def create_superuser(self, email, password, **extra_fields):
+        """ Create Super user for testing things """
+        user = self.create_user(email, password, **extra_fields)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(using=self._db)
+
+        return user
+
+
+class User(AbstractBaseUser, PermissionsMixin):
+    """Custom user model that supports using email instead of username"""
+
+    email = models.EmailField(_('Email'), max_length=255, unique=True)
+    first_name = models.CharField(_('First Name'), max_length=255)
+    last_name = models.CharField(_('Last Name'), max_length=255)
+    is_active = models.BooleanField(_('Is Active ?'), default=True)
+    is_staff = models.BooleanField(_('Is Staff ?'), default=False)
+    is_instructor = models.BooleanField(_('Is Instructor ?'), default=False)
+    about = models.TextField(_('Description'), null=True, blank=True)
+    phone = models.CharField(_('Phone'), max_length=20, blank=True, null=True)
+    is_male = models.BooleanField(_('Gender'), default=True,
+                                  choices=((True, _('Male')), (False, _('Female'))))
+    birthdate = models.DateField(verbose_name=_('Birth date'), null=True,
+                                 blank=True, validators=[birth_validator])
+    country = models.CharField(_('Country'), max_length=30, blank=True, null=True)
+    city = models.CharField(_('City'), max_length=30, blank=True, null=True)
+    pic = models.ImageField(_('Personal Pic'), upload_to=uuid_path,
+                            null=True, blank=True)
+    courses = models.ManyToManyField(
+        'Course', through='Rel', related_name='students')
+
+    objects = UserManager()
+    USERNAME_FIELD = 'email'
+
+    def pic_tag(self):
+        return format_html('<img src="{}" width="450px" />'.format(self.pic.url))
+    pic_tag.short_description = _('Image')
+    pic_tag.allow_tags = True
+
+    def __str__(self):
+        return self.first_name
 
 
 class Skill(models.Model):
-    name = models.CharField(verbose_name=_('Skill name'), max_length=120)
+    name = models.CharField(_('Skill name'), max_length=255, unique=True)
 
     def __str__(self):
         return self.name
@@ -29,46 +95,8 @@ class Skill(models.Model):
         verbose_name_plural = _('Skills')
 
 
-class Profile(models.Model):
-    ''' this model to store more efficient data about our users
-        - it connect with django user model with (user) field
-    '''
-    user = models.OneToOneField(verbose_name=_('The User'), to=User,
-                                on_delete=models.CASCADE,
-                                related_name='profile')
-    about = models.TextField(verbose_name=_('Description'), null=True,
-                             max_length=1000, blank=True)
-    phone = models.CharField(verbose_name=_('Phone'), max_length=20)
-    is_male = models.BooleanField(verbose_name=_('Gender'), choices=(
-        (True, _('Male')),
-        (False, _('Female'))))
-    birthdate = models.DateField(verbose_name=_('Birth date'), null=True,
-                                 blank=True, validators=[birth_validator])
-    country = models.CharField(verbose_name=_('Country'), max_length=30)
-    city = models.CharField(verbose_name=_('City'), max_length=30)
-    state = models.CharField(verbose_name=_('state'), max_length=30,
-                             blank=True, null=True)
-    saved = models.ManyToManyField(verbose_name=_('Saved courses'), blank=True,
-                                   to='Course', related_name='like')
-    pic = models.ImageField(verbose_name=_('Personal Pic'), upload_to='PP',
-                            null=True, blank=True)
-
-    def __str__(self):
-        return self.user.username
-
-    class Meta:
-        verbose_name = _('Profile')
-        verbose_name_plural = _('Profiles')
-
-
-'''
-class Instructor(models.Model):
-    user = models.OneToOneField(to=User, on_delete=models.CASCADE)
-'''
-
-
 class Host(models.Model):
-    name = models.CharField(_('Name'), max_length=50)
+    name = models.CharField(_('Name'), max_length=255)
     website = models.URLField(_('Website'), max_length=200)
     after = models.TextField(_('After Link'))
     before = models.TextField(_('Before Link'))
@@ -82,8 +110,8 @@ class Host(models.Model):
 
 
 class Language(models.Model):
-    name = models.CharField(help_text=_('CAPITAL chars'),
-                            verbose_name=_('Language'),
+    name = models.CharField(_('Language'), unique=True,
+                            help_text=_('CAPITAL chars'),
                             max_length=50)
 
     def __str__(self):
@@ -95,8 +123,8 @@ class Language(models.Model):
 
 
 class Level(models.Model):
-    name = models.CharField(help_text=_('Level name'),
-                            verbose_name=_('Level'),
+    name = models.CharField(_('Level'), unique=True,
+                            help_text=_('Level name'),
                             max_length=50)
 
     def __str__(self):
@@ -108,9 +136,15 @@ class Level(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(verbose_name=_('Category name'), max_length=100)
-    slug = models.SlugField(verbose_name=_('slug in url'), unique=True)
-    desc = models.TextField(verbose_name=_('Description'))
+    name = models.CharField(_('Category name'), max_length=100, unique=True)
+    slug = models.SlugField(_('slug in url'), unique=True)
+    desc = models.TextField(_('Description'))
+    
+    def get_5_courses(self):
+        return self.courses.filter(is_approved=True)[:5]
+    
+    def get_courses(self):
+        return self.courses.filter(is_approved=True)
 
     def __str__(self):
         return self.name
@@ -121,7 +155,8 @@ class Category(models.Model):
 
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name=_('Tag Name'), max_length=50)
+    name = models.CharField(verbose_name=_('Tag Name'),
+                            max_length=50, unique=True)
     desc = models.TextField(verbose_name=_('Description'))
 
     def __str__(self):
@@ -133,35 +168,35 @@ class Tag(models.Model):
 
 
 class Course(models.Model):
-    ''' This Model Describe Course data'''
-    slug = models.SlugField(verbose_name=_('slug in url'), unique=True)
+    """This Model Describe Course data"""
+    slug = models.SlugField(_('slug for url'), unique=True)
     instructor = models.ForeignKey(verbose_name=_('The Instructor'),
-                                   to=User, on_delete=models.CASCADE)
-    name = models.CharField(verbose_name=_('The Name'), max_length=150)
+                                   to=settings.AUTH_USER_MODEL, on_delete=models.PROTECT,
+                                   limit_choices_to={'is_instructor': True},
+                                   related_name='courses_instructor')
+    title = models.CharField(_('Title'), max_length=255)
     category = models.ForeignKey(verbose_name=_('Category'),
-                                 to='Category', on_delete=models.PROTECT)
+                                 to='Category', on_delete=models.PROTECT,
+                                 related_name='courses')
     tags = models.ManyToManyField(verbose_name=_('Tags'), to=Tag,
-                                  related_name='Ctags')
+                                  related_name='courses')
     time = models.IntegerField(verbose_name=_('Full course time in Hours'))
-    pub_date = models.DateField(verbose_name=_('Publish Date'), null=True,
-                                blank=True, default=None)
-    expiration_date = models.DateField(verbose_name=_('Expiration Date'),
-                                       null=True, blank=True)
-    files = models.FileField(verbose_name=_('Attached Files in Zip and named '
-                                            'as course title'), null=True,
+    pub_date = models.DateTimeField(_('Publish Date'), null=True,
+                                    blank=True, default=None)
+    files = models.FileField(_("""Attached Files in Zip and named
+                               as course title"""), null=True,
                              blank=True, upload_to='CF')
     is_approved = models.BooleanField(verbose_name=_('Is Approved By Admin ?'),
                                       default=False)
 
     # Fields for help student to know more about course
 
-    skills_covered = models.ManyToManyField(to=Skill, related_name='skill',
-                                            verbose_name=_('Skiils Covered '
-                                                           'in Course'))
-    intro_text = models.TextField(verbose_name=_('Course Text introduction'))
-    intro_video = models.URLField(verbose_name=_('introduction video'),
-                                  help_text=_('This should be embed YouTube'))
-    before = models.TextField(verbose_name=_('Before the course'),
+    skills_covered = models.ManyToManyField(to=Skill, related_name='courses',
+                                            verbose_name=_('Skiils Covered in Course'))
+    intro_text = models.TextField(_('Course Text introduction'))
+    intro_video = models.URLField(_('introduction video'),
+                                  help_text=_('This should be embed YouTube link'))
+    before = models.TextField(_('Before the course'),
                               help_text=_('What student should know '
                                           'about before enroll in course'))
     after = models.TextField(verbose_name=_('After the course'),
@@ -177,14 +212,14 @@ class Course(models.Model):
                               blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.title
 
     def get_lessons_num(self):
         i = 0
         for d in Unit.objects.filter(course=self.pk):
-            i += d.get_v_num()
+            i += d.get_lessons_num()
         return i
-    get_lessons_num.short_description = _('Lesson count')
+    get_lessons_num.short_description = _('Lessons Number')
 
     def get_units_num(self):
         return Unit.objects.filter(course=self.pk).count()
@@ -204,10 +239,10 @@ class Unit(models.Model):
     name = models.CharField(max_length=100, verbose_name=_('The name'))
     course = models.ForeignKey(verbose_name=_('Course'), to=Course,
                                on_delete=models.CASCADE,
-                               related_name='course_unit')
+                               related_name='units')
     desc = models.TextField(verbose_name=_('Description'))
     arrange = models.IntegerField(verbose_name=_('Unit Arrange'), validators=[
-        MinValueValidator(1, _('Arrange start at \'1\''))], default=0)
+        MinValueValidator(1, _('Arrange start at \'1\''))], default=1)
 
     class Meta:
         verbose_name = _('Unit')
@@ -217,46 +252,46 @@ class Unit(models.Model):
     def __str__(self):
         return self.name
 
-    def get_v_num(self):
-        return len(Lesson.objects.filter(unit=self.pk))
+    def get_lessons_num(self):
+        return Lesson.objects.filter(unit=self.pk).count()
 
 
 class Quiz(models.Model):
     unit = models.ForeignKey(to=Unit, on_delete=models.CASCADE,
                              verbose_name=_('Unit'),
-                             related_name='unit_quiz')
-    question = models.CharField(verbose_name=_('Question'), max_length=200)
-    style = models.IntegerField(verbose_name=_('style'), default=1,
-                                choices=((0, _('Choose')),
-                                         (1, _('Complete')),
-                                         (2, _('Check Done'))))
-    answer = models.CharField(verbose_name=_('True answer'), max_length=200)
-    ch1 = models.CharField(verbose_name=_('False 1'), max_length=200,
+                             related_name='quizzes')
+    question = models.CharField(_('Choice Question'), max_length=255)
+    answer = models.CharField(_('True answer'), max_length=255)
+    ch1 = models.CharField(_('False 1'), max_length=255,
                            null=True, blank=True)
-    ch2 = models.CharField(verbose_name=_('False 2'), max_length=200,
+    ch2 = models.CharField(_('False 2'), max_length=255,
                            null=True, blank=True)
-    ch3 = models.CharField(verbose_name=_('False 3'), max_length=200,
+    ch3 = models.CharField(_('False 3'), max_length=255,
                            null=True, blank=True)
+    ch4 = models.CharField(_('False 4'), max_length=255,
+                           null=True, blank=True)
+
+    def check_answer(self, answer):
+        return (str(answer).lower() == str(self.answer).lower())
+
+    def __str__(self):
+        return self.question
 
     class Meta:
         verbose_name = _('Quiz')
         verbose_name_plural = _('Quizzes')
 
-    def __str__(self):
-        return self.question
-
 
 class Lesson(models.Model):
-    name = models.CharField(verbose_name=_('Name'), max_length=60)
-    text = models.TextField(verbose_name=_('Lesson Text'))
-    video = models.URLField(verbose_name=_('Video Link'),
+    name = models.CharField(_('Name'), max_length=255)
+    text = models.TextField(_('Lesson Text'))
+    video = models.URLField(_('Video Link'),
                             help_text=_('embeded video link'))
-    arrange = models.IntegerField(verbose_name=_('Arrange in Unit'),
-                                  validators=[
-        MinValueValidator(1, _('Arrange start at \'1\''))])
+    arrange = models.IntegerField(_('Arrange in Unit'), default=1,
+                                  validators=[MinValueValidator(1, _('Arrange start at \'1\''))])
     unit = models.ForeignKey(verbose_name=_('Unit'), to=Unit,
                              on_delete=models.CASCADE,
-                             related_name='unit_lesson')
+                             related_name='lessons')
     host = models.ForeignKey(Host, verbose_name=_('Host'),
                              on_delete=models.PROTECT)
 
@@ -269,90 +304,38 @@ class Lesson(models.Model):
         unique_together = [['arrange', 'unit']]
 
 
-class Quiz_Solve(models.Model):
-    quiz = models.ForeignKey(to=Quiz, on_delete=models.CASCADE,
-                             verbose_name=_('quiz'))
-    enrollment = models.ForeignKey(to='Student_Study_Course',
-                                   on_delete=models.CASCADE,
-                                   verbose_name=_('enrollment'),
-                                   related_name='enroll_quiz')
-    is_True = models.BooleanField(verbose_name=_('is True?'))
+class Rel(models.Model):
+    """describe and implement all relation
+    types and interactions between Student and course"""
+    ENROLLMENT = 1
+    FINISHED = 2
+    TYPE_CHOICES = (
+        (ENROLLMENT, _('ENROLLMENT')),
+        (FINISHED, _('FINISHED')),
+    )
 
-    class Meta:
-        verbose_name = _("Quiz_Solve")
-        verbose_name_plural = _("Quizs_Solves")
-        unique_together = [['quiz', 'enrollment']]
+    course = models.ForeignKey(
+        'Course', related_name='details', on_delete=models.PROTECT)
+    student = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name='details', on_delete=models.CASCADE)
+    rel_type = models.IntegerField(choices=TYPE_CHOICES, default=ENROLLMENT)
+    lessons_attended = models.ManyToManyField('Lesson', related_name='attend')
+    quizzes_solved = models.ManyToManyField('Quiz', related_name='solve')
+    rating = models.IntegerField(_('Rating'), blank=True, null=True,
+                                 validators=(MinValueValidator(0), MaxValueValidator(10)))
+    feedback = models.CharField(
+        _('Review'), max_length=255, blank=True, null=True)
+    join_date = models.DateTimeField(_('Join Date'), auto_now_add=True)
 
-    def __str__(self):
-        return str(self.quiz) + ' ' + str(self.is_True)
-
-    def clean(self):
-        e_c = Student_Study_Course.objects.get(pk=self.enrollment.pk).course
-        q_c = Unit.objects.get(unit_quiz=self.quiz).course
-        if q_c.pk != e_c.pk:
-            raise ValidationError(_('The Quiz ('+str(self.quiz) +
-                                    ') not in this course'))
-
-
-class Lesson_Attend(models.Model):
-    lesson = models.ForeignKey(to=Lesson, on_delete=models.CASCADE,
-                               verbose_name=_('lesson'),
-                               related_name='lesson_attend')
-    enrollment = models.ForeignKey(to='Student_Study_Course',
-                                   on_delete=models.CASCADE,
-                                   verbose_name=_('enrollment'),
-                                   related_name='enroll_lesson')
-
-    class Meta:
-        verbose_name = _("Attended Lesson")
-        verbose_name_plural = _("Attended Lessons")
-        unique_together = [['lesson', 'enrollment']]
+    def is_attended(self, lesson_id):
+        return self.lessons_attended.filter(pk=lesson_id).exists()
 
     def __str__(self):
-        return str(self.lesson)
-
-    def clean(self):
-        e_c = Student_Study_Course.objects.get(pk=self.enrollment.pk).course
-        l_c = Unit.objects.get(unit_lesson=self.lesson).course
-        if l_c.pk != e_c.pk:
-            raise ValidationError(_('The Lesson ('+str(self.lesson) +
-                                    ')not in this course'))
-
-
-class Student_Study_Course(models.Model):
-    user = models.ForeignKey(verbose_name=_('User'), to=User,
-                             on_delete=models.CASCADE,
-                             related_name='course_study')
-    course = models.ForeignKey(verbose_name=_('Course'), to=Course,
-                               on_delete=models.CASCADE)
-    date = models.DateField(_('Date'), auto_now_add=True)
-
+        return str(self.course) + ' ' + str(self.student)
+    
     class Meta:
-        verbose_name = _('Enrollment')
-        verbose_name_plural = _('Enrollments')
-        unique_together = [['user', 'course']]
-        ordering = ['date']
+        unique_together = [['course', 'student']]
 
-    def __str__(self):
-        return str(self.pk) + '-' + str(self.user)+' - '+str(self.course)
-
-
-class Student_Finish_Course(models.Model):
-    user = models.ForeignKey(verbose_name=_('User'), to=User,
-                             on_delete=models.CASCADE)
-    course = models.ForeignKey(verbose_name=_('Course'), to=Course,
-                               on_delete=models.CASCADE,
-                               related_name='course_finish')
-    rating = models.IntegerField(verbose_name=_('Rating'),
-                                 validators=[MinValueValidator(0),
-                                             MaxValueValidator(10)])
-    feedback = models.TextField(verbose_name=_('Course FeedBack'))
-    date = models.DateField(verbose_name=_('Date'), auto_now_add=True)
-
-    class Meta:
-        verbose_name = _('Finished Enrolls')
-        verbose_name_plural = _('Finished Enrolls')
-        unique_together = [['user', 'course']]
 
 
 class NewsTeller(models.Model):
